@@ -1,32 +1,59 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Person(Base):
-    __tablename__ = 'person'
+class User(Base):
+    __tablename__ = 'users'
     # Here we define columns for the table person
     # Notice that each column is also a normal Python instance attribute.
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    name = Column(String(50))
+    email = Column(String)
+    password = Column(String)
+    username = Column(String(250), nullable=False)
+    posts = relationship('Post',backref='users',lazy=True)
+    likes  =relationship('Like',backref='users',lazy=True)
+    comments = relationship('Comment',backref='users',lazy=True)
+    friends = relationship('Friend',backref='users',lazy=True)
+    conversations = relationship('Conversation',backref='users',lazy=True)
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
-    id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+class Post(Base):
+    __tablename__ = 'posts'
+    id = Column(Integer,primary_key = True)
+    user_id = Column(Integer,ForeignKey('users.id'),nullable = False)
+    date = Column(DateTime)
+    footer = Column(String(600))
+    likes = relationship('Like',backref='posts',lazy=True)
+    comments = relationship('Comment',backref='comments',lazy=True)
 
-    def to_dict(self):
-        return {}
+class Comment(Base):
+    __tablename__ = 'comments'
+    id = Column(Integer,primary_key = True)
+    user_id = Column(Integer,ForeignKey('users.id'))
+    post_id = Column(Integer,ForeignKey('posts.id'))
+    comment = Column(String(400))
+
+class Like(Base):
+    __tablename__ = 'likes'
+    user_id = Column(Integer,ForeignKey('users.id'),primary_key=True)
+    post_id = Column(Integer,ForeignKey('posts.id'),primary_key=True)
+
+class Friendship(Base):
+    __tablename__ = 'friendships'
+    # id = Column(Integer,primary_key=True)
+    friend1_id = Column(Integer,ForeignKey('users.id'),primary_key=True)
+    friend2_id = Column(Integer,ForeignKey('users.id'),primary_key=True)
+
+class Conversation(Base):
+    __tablename__ = 'conversations'
+    user1_id = Column(Integer,ForeignKey('users.id'),primary_key=True)
+    user2_id = Column(Integer,ForeignKey('users.id'),primary_key=True)
+    conv = Column(Text)
 
 ## Draw from SQLAlchemy base
 try:
